@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
+// If you see TypeScript errors for image imports, add a file named 'images.d.ts' in 'src' with:
+// declare module '*.png';
+// declare module '*.jpg';
 
 // Direct MP3 URL from Cloudinary
 const BIRTHDAY_MUSIC_URL = 'https://res.cloudinary.com/dssk0lrai/video/upload/v1748346500/HAPPY_BIRTHDAY_TO_YOU_PIANO_INSTRUMENTAL_BEST_HAPPY_BITHDAY_MUSIC_2021_ys06rg.mp3';
@@ -58,7 +61,10 @@ const ButtonContainer = styled.div`
 
 const NoButton = styled(Button)`
   position: relative;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  &:hover {
+    transform: translate(${props => Math.random() * 200 - 100}px, ${props => Math.random() * 200 - 100}px) !important;
+  }
 `;
 
 const Banner = styled.div`
@@ -114,7 +120,7 @@ const PartyImage = styled.div<{ index: number }>`
   }
 `;
 
-const Balloon = styled.div<{ color: string; delay: number }>`
+const Balloon = styled.div<{ color: string; delay: number; left: number }>`
   width: 50px;
   height: 60px;
   background-color: ${props => props.color};
@@ -123,7 +129,7 @@ const Balloon = styled.div<{ color: string; delay: number }>`
   bottom: -100px;
   animation: float 4s ease-in infinite;
   animation-delay: ${props => props.delay}s;
-  left: ${props => Math.random() * 100}vw;
+  left: ${props => props.left}vw;
 
   &:before {
     content: '';
@@ -250,6 +256,31 @@ const FireworkSparkle = styled.div<{ delay: number; top: number; left: number }>
   }
 `;
 
+const FloatingImage = styled.img<{ delay: number; left: number }>`
+  max-width: 180px;
+  max-height: 180px;
+  position: fixed;
+  bottom: -100px;
+  animation: float 4s ease-in infinite;
+  animation-delay: ${props => props.delay}s;
+  left: ${props => props.left}vw;
+  z-index: 2;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  border-radius: 18px;
+  background: #fff8;
+
+  @keyframes float {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-120vh);
+      opacity: 0.7;
+    }
+  }
+`;
+
 const BirthdaySurprise = () => {
   const [showInitial, setShowInitial] = useState(true);
   const [isDark, setIsDark] = useState(true);
@@ -267,10 +298,15 @@ const BirthdaySurprise = () => {
   const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const [noButtonClicks, setNoButtonClicks] = useState(0);
+  const [noButtonText, setNoButtonText] = useState('No 😢');
+  const [showFinalGif, setShowFinalGif] = useState(false);
 
   // Updated cake image URLs
   const cakeImageUrl = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExcXlkMjhvdXpqbGEzMnFnYWgycWJqMGg1c3Zsd2tjNXZldDVhbW9nYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/TgJ7RVHbCybpdNqp1t/giphy.gif";
   const cakeSliceUrl = "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnc2dnV5cWp4YXpuZ25pM2VyZHRiODNuYXplcm44bms5bW1oZ3loYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/FPa3WqwV4WlCu8N7Yf/giphy.gif";
+
+  const finalGifUrl = 'https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExajhiZHljd2RxNDRhYWVvZzFxNTl5M3p3YTl5Y2xueDNlcnQ0eWk4cyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Q0QSGW9vAs4l6S3CPd/giphy.gif';
 
   const messageLines = [
     "This is to celebrate the day a kind soul came into this world, brightened many lives, healed many hearts — including mine — and I'm so grateful to have such a cutie pie doll in my life. ❤️",
@@ -320,6 +356,11 @@ const BirthdaySurprise = () => {
       timeout = setTimeout(() => {
         setCurrentMessageIndex(prev => prev + 1);
       }, 8000);
+    } else if (currentStep === 8 && currentMessageIndex === messageLines.length - 1) {
+      // Show GIF after last message line
+      timeout = setTimeout(() => {
+        setShowFinalGif(true);
+      }, 8000);
     }
     return () => clearTimeout(timeout);
   }, [currentStep, currentMessageIndex, messageLines.length]);
@@ -329,12 +370,35 @@ const BirthdaySurprise = () => {
     setCurrentStep(1);
   };
 
+  const handleNoButtonClick = () => {
+    setNoButtonClicks(prev => prev + 1);
+    const responses = [
+      'Nice catch! Still No 😝',
+      'Wow you got me! But still No 😈',
+      'You\'re quick! But No 🏃‍♂️',
+      'Impressive! But No 🎭',
+      'Almost had me! No 🎪'
+    ];
+    setNoButtonText(responses[noButtonClicks % responses.length]);
+    handleNoButtonHover(); // Make it move again after being caught
+  };
+
   const handleNoButtonHover = () => {
-    const moveDistance = 100; // pixels to move
-    const randomAngle = Math.random() * 2 * Math.PI; // random angle in radians
+    const moveDistance = 150; // Increased movement distance
+    const randomAngle = Math.random() * 2 * Math.PI;
     const x = Math.cos(randomAngle) * moveDistance;
     const y = Math.sin(randomAngle) * moveDistance;
-    setNoButtonPosition({ x, y });
+    
+    // Ensure button stays within viewport
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const buttonWidth = 100; // Approximate button width
+    const buttonHeight = 50; // Approximate button height
+    
+    const finalX = Math.min(Math.max(x, -viewportWidth/2 + buttonWidth), viewportWidth/2 - buttonWidth);
+    const finalY = Math.min(Math.max(y, -viewportHeight/2 + buttonHeight), viewportHeight/2 - buttonHeight);
+    
+    setNoButtonPosition({ x: finalX, y: finalY });
   };
 
   const handleLightsOn = () => {
@@ -422,105 +486,144 @@ const BirthdaySurprise = () => {
         ))}
       </Fireworks>
       <Container>
-        {showInitial && (
+        {showFinalGif ? (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '100vh',
+            width: '100vw',
+            background: '#fff',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            zIndex: 9999
+          }}>
+            <img src={finalGifUrl} alt="Celebration GIF" style={{ maxWidth: '90vw', maxHeight: '70vh', borderRadius: '18px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }} />
+            <div style={{ marginTop: '32px', fontSize: '2rem', color: '#888', letterSpacing: '0.2em', fontWeight: 600 }}>
+              -END-
+            </div>
+          </div>
+        ) : (
           <>
-            <h1>Do you want to see what I made for you? 🎁</h1>
-            <ButtonContainer>
-              <Button primary onClick={handleYesClick}>Yes! 💖</Button>
-              <NoButton
-                onMouseEnter={handleNoButtonHover}
-                style={{
-                  transform: `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)`,
-                }}
-              >
-                No 😢
-              </NoButton>
-            </ButtonContainer>
-          </>
-        )}
+            {showInitial && (
+              <>
+                <h1>Do you want to see what I made for you? 🎁</h1>
+                <ButtonContainer>
+                  <Button primary onClick={handleYesClick}>Yes! 💖</Button>
+                  <NoButton
+                    onMouseEnter={handleNoButtonHover}
+                    onClick={handleNoButtonClick}
+                    style={{
+                      transform: `translate(${noButtonPosition.x}px, ${noButtonPosition.y}px)`,
+                    }}
+                  >
+                    {noButtonText}
+                  </NoButton>
+                </ButtonContainer>
+              </>
+            )}
 
-        {!showInitial && currentStep === 1 && (
-          <Button onClick={handleLightsOn}>Turn the lights on 💡</Button>
-        )}
+            {!showInitial && currentStep === 1 && (
+              <Button onClick={handleLightsOn}>Turn the lights on 💡</Button>
+            )}
 
-        {currentStep === 2 && (
-          <>
-            <Button 
-              onClick={handlePlayMusic}
-              disabled={isAudioLoading}
-            >
-              {isAudioLoading ? 'Loading Music...' : 'Play the Music 🎵'}
-            </Button>
-            {audioError && (
-              <div style={{ color: 'red', marginTop: '10px' }}>
-                {audioError}
-              </div>
+            {currentStep === 2 && (
+              <>
+                <Button 
+                  onClick={handlePlayMusic}
+                  disabled={isAudioLoading}
+                >
+                  {isAudioLoading ? 'Loading Music...' : 'Play the Music 🎵'}
+                </Button>
+                {audioError && (
+                  <div style={{ color: 'red', marginTop: '10px' }}>
+                    {audioError}
+                  </div>
+                )}
+              </>
+            )}
+
+            {currentStep === 3 && (
+              <Button onClick={handleDecorate}>Decorate 🎊</Button>
+            )}
+
+            {showBanner && (
+              <Banner>Happy 22nd Birthday Madamji! 🎉</Banner>
+            )}
+
+            {currentStep === 4 && (
+              <Button onClick={handleBalloons}>Fly the balloons 🎈</Button>
+            )}
+
+            {showBalloons && currentStep !== 8 && (
+              <>
+                {balloonColors.map((color, index) => (
+                  <Balloon key={index} color={color} delay={index * 0.5} left={Math.random() * 100} />
+                ))}
+                {/* Floating images with the balloons */}
+                {[
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358030/image-1_tnksla.png',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358033/image-5_w5rhys.jpg',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358030/image-3_bqt2d0.jpg',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358529/image-2_hzndh1.jpg',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358530/image-4_xsanqz.jpg',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358030/image-1_tnksla.png',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358033/image-5_w5rhys.jpg',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358030/image-3_bqt2d0.jpg',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358529/image-2_hzndh1.jpg',
+                  'https://res.cloudinary.com/dssk0lrai/image/upload/v1750358530/image-4_xsanqz.jpg'
+                ].map((img, idx) => (
+                  <FloatingImage key={idx} src={img} delay={idx * 0.7} left={Math.random() * 100} alt={`Floating ${idx}`} />
+                ))}
+              </>
+            )}
+
+            {currentStep === 5 && (
+              <Button onClick={handleCake}>Let's get the cake 🎂</Button>
+            )}
+
+            {showCake && (
+              <CakeContainer>
+                <CakeImage 
+                  src={cakeImageUrl} 
+                  alt="Birthday Cake"
+                  isSliced={isCakeSliced}
+                  style={{ display: isCakeSliced ? 'none' : 'block' }}
+                />
+                <CakeImage 
+                  src={cakeSliceUrl}
+                  alt="Sliced Cake"
+                  isSliced={isCakeSliced}
+                  style={{ display: isCakeSliced ? 'block' : 'none' }}
+                />
+              </CakeContainer>
+            )}
+
+            {currentStep === 6 && !isCakeSliced && (
+              <Button onClick={handleSliceCake}>Let's cut the cake! 🔪</Button>
+            )}
+
+            {currentStep === 7 && (
+              <Button onClick={handleShowMessage}>I have a message for you ❤️</Button>
+            )}
+
+            {currentStep === 8 && !showFinalGif && (
+              <MessageContainer>
+                <Message>
+                  {messageLines.map((line, index) => (
+                    <MessageLine 
+                      key={index} 
+                      isVisible={index === currentMessageIndex}
+                    >
+                      {line}
+                    </MessageLine>
+                  ))}
+                </Message>
+              </MessageContainer>
             )}
           </>
-        )}
-
-        {currentStep === 3 && (
-          <Button onClick={handleDecorate}>Decorate 🎊</Button>
-        )}
-
-        {showBanner && (
-          <Banner>Happy Birthday Madamji! 🎉</Banner>
-        )}
-
-        {currentStep === 4 && (
-          <Button onClick={handleBalloons}>Fly the balloons 🎈</Button>
-        )}
-
-        {showBalloons && (
-          <>
-            {balloonColors.map((color, index) => (
-              <Balloon key={index} color={color} delay={index * 0.5} />
-            ))}
-          </>
-        )}
-
-        {currentStep === 5 && (
-          <Button onClick={handleCake}>Let's get the cake 🎂</Button>
-        )}
-
-        {showCake && (
-          <CakeContainer>
-            <CakeImage 
-              src={cakeImageUrl} 
-              alt="Birthday Cake"
-              isSliced={isCakeSliced}
-              style={{ display: isCakeSliced ? 'none' : 'block' }}
-            />
-            <CakeImage 
-              src={cakeSliceUrl}
-              alt="Sliced Cake"
-              isSliced={isCakeSliced}
-              style={{ display: isCakeSliced ? 'block' : 'none' }}
-            />
-          </CakeContainer>
-        )}
-
-        {currentStep === 6 && !isCakeSliced && (
-          <Button onClick={handleSliceCake}>Let's cut the cake! 🔪</Button>
-        )}
-
-        {currentStep === 7 && (
-          <Button onClick={handleShowMessage}>I have a message for you ❤️</Button>
-        )}
-
-        {currentStep === 8 && (
-          <MessageContainer>
-            <Message>
-              {messageLines.map((line, index) => (
-                <MessageLine 
-                  key={index} 
-                  isVisible={index === currentMessageIndex}
-                >
-                  {line}
-                </MessageLine>
-              ))}
-            </Message>
-          </MessageContainer>
         )}
       </Container>
     </ThemeProvider>
