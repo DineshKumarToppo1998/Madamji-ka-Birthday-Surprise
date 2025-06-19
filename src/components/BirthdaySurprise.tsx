@@ -313,7 +313,7 @@ const BirthdaySurprise = () => {
     "You are the most beautiful person I have ever met, inside and out. Your smile, your laughter, your kindness, and your love brings out the best in me.",
     "I hope this year brings you as much happiness and joy as you have given to everyone around you.",
     "May all your dreams come true, and I'll watch over you as you continue to inspire and uplift those around you.",
-    "Thank you for being you, and for being such a wonderful part of my life. I cherish every moment we spend together and definitely look forward to your visits to my place. 😉",
+    "Thank you for being you, and for being such a wonderful part of my life. I cherish every moment we spend together. 😉",
     "Here's to many more birthdays, adventures, and memories together!",
     "Happy Birthday, my love! ❤️ 🎉",
     "Yours truly - Dinesh"
